@@ -3,7 +3,13 @@
  *
  */
 
-import _ from 'lodash';
+import find from 'lodash/find';
+import isEmpty from 'lodash/isEmpty';
+import isNumber from 'lodash/isNumber';
+import isObject from 'lodash/isObject';
+import isString from 'lodash/isString';
+import merge from 'lodash/merge';
+import remove from 'lodash/remove';
 import moment from 'moment';
 
 export class MemoryStore {
@@ -61,7 +67,7 @@ export class Store {
      */
     find(key, defaultValue) {
         let data = this.read(key);
-        if (_.isEmpty(data) && defaultValue) {
+        if (isEmpty(data) && defaultValue) {
             return defaultValue;
         } else {
             return data;
@@ -94,7 +100,7 @@ export class Store {
         if (object._expires_at) { //check if data has expire_at
 
             let expiresAt = object._expires_at;
-            if (_.isString(expiresAt)) {
+            if (isString(expiresAt)) {
                 expiresAt = new Date(expiresAt);
             }
 
@@ -116,7 +122,7 @@ export class Store {
      * @param object
      */
     write(key, object, expireAfter) {
-        object = _.isObject(object) ? object : {data: object}; // check if data is an object otherwise create data set as object
+        object = isObject(object) ? object : {data: object}; // check if data is an object otherwise create data set as object
         if (expireAfter) { // if the  options has expire_after create the date object and assigns to object
             this.setExpire(object, expireAfter);
         }
@@ -132,7 +138,7 @@ export class Store {
      * @param expireAfter
      */
     setExpire(object, expireAfter) {
-        if (_.isNumber(expireAfter)) {
+        if (isNumber(expireAfter)) {
             object._expires_at = moment().add(expireAfter, 'minutes').toDate();
         } else {
             let expire = expireAfter.split('.');
@@ -170,7 +176,7 @@ export class Store {
      */
     removeItem(key, callback) {
         const object = this.read(key);
-        _.remove(object.items, callback);
+        remove(object.items, callback);
         this.insert(key, object);
         return object;
     }
@@ -185,11 +191,11 @@ export class Store {
      */
     updateItem(key, data, callback) {
         const object = this.read(key),
-            item = _.find(object.items, callback);
+            item = find(object.items, callback);
         let update = {};
 
         if (item) {
-            update = _.merge(item, data)
+            update = merge(item, data)
         }
         this.insert(key, object);
         return update;
@@ -202,7 +208,7 @@ export class Store {
      */
     findItem(key, callback) {
         const object = this.read(key);
-        return _.find(object.items, callback);
+        return find(object.items, callback);
     }
 
     /**
@@ -230,6 +236,3 @@ export class Store {
         return JSON.parse(data);
     }
 }
-
-
-
